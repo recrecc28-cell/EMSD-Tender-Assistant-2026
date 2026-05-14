@@ -30,6 +30,7 @@ export default function App() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [docType, setDocType] = useState<'full' | 'site_visit' | 'quotation'>('full');
   
   // Base extracted dates
   const [dates, setDates] = useState<ExtractedDates>({
@@ -217,54 +218,62 @@ export default function App() {
       });
 
       if (fields.length === 0 || filledCount === 0) {
-        // Fallback drawing for Flat PDFs directly on Page 8 and Page 39
+        // Fallback drawing for Flat PDFs
         const pages = pdfDoc.getPages();
-        
-        // Page 8 (Index 7)
-        if (pages.length > 7) {
-          const page = pages[7];
-          const { height } = page.getSize();
-          
-          // 7.5cm = 212.6 points
-          const mmToPt = (mm: number) => mm * 2.83465;
-          
-          const fontSize = 7;
-          
-          // Table data
-          await drawTextAsImage(pdfDoc, page, `REC Engineering Company Limited`, mmToPt(130), height - mmToPt(121), fontSize);
-          
-          await drawTextAsImage(pdfDoc, page, `Units A-D, 15/F Goodman Kwai Chung Logistics Centre,`, mmToPt(130), height - mmToPt(125), 6);
-          await drawTextAsImage(pdfDoc, page, `585-609 castle peak road, kwai chung, New Territories, Hong Kong`, mmToPt(130), height - mmToPt(128), 6);
-          
-          // Row 1
-          await drawTextAsImage(pdfDoc, page, `王先生`, mmToPt(130), height - mmToPt(135), fontSize);
-          await drawTextAsImage(pdfDoc, page, `92882982`, mmToPt(130), height - mmToPt(144), fontSize);
-          await drawTextAsImage(pdfDoc, page, `Engineer`, mmToPt(130), height - mmToPt(139), fontSize);
-          
-          // Row 2
-          await drawTextAsImage(pdfDoc, page, `李先生`, mmToPt(155), height - mmToPt(135), fontSize);
-          await drawTextAsImage(pdfDoc, page, `26198887`, mmToPt(155), height - mmToPt(144), fontSize);
-          await drawTextAsImage(pdfDoc, page, `Engineer`, mmToPt(155), height - mmToPt(139), fontSize);
-          
-          // Signature Block
-          await drawTextAsImage(pdfDoc, page, `王先生`, mmToPt(120), height - mmToPt(173), fontSize);
-          await drawTextAsImage(pdfDoc, page, signatureDate, mmToPt(120), height - mmToPt(181), fontSize);
-          await drawTextAsImage(pdfDoc, page, `REC Engineering Company Limited`, mmToPt(120), height - mmToPt(190), fontSize);
+        const mmToPt = (mm: number) => mm * 2.83465;
+        const fontSize = 7;
+        let drewSomething = false;
+
+        if (docType === 'full' || docType === 'site_visit') {
+          const targetPageIndex = docType === 'full' ? 7 : 0;
+          if (pages.length > targetPageIndex) {
+            const page = pages[targetPageIndex];
+            const { height } = page.getSize();
+            
+            // Site Visit Form data
+            await drawTextAsImage(pdfDoc, page, `REC Engineering Company Limited`, mmToPt(130), height - mmToPt(121), fontSize);
+            await drawTextAsImage(pdfDoc, page, `Units A-D, 15/F Goodman Kwai Chung Logistics Centre,`, mmToPt(130), height - mmToPt(125), 6);
+            await drawTextAsImage(pdfDoc, page, `585-609 castle peak road, kwai chung, New Territories, Hong Kong`, mmToPt(130), height - mmToPt(128), 6);
+            
+            // Row 1
+            await drawTextAsImage(pdfDoc, page, `王先生`, mmToPt(130), height - mmToPt(135), fontSize);
+            await drawTextAsImage(pdfDoc, page, `92882982`, mmToPt(130), height - mmToPt(144), fontSize);
+            await drawTextAsImage(pdfDoc, page, `Engineer`, mmToPt(130), height - mmToPt(139), fontSize);
+            
+            // Row 2
+            await drawTextAsImage(pdfDoc, page, `李先生`, mmToPt(155), height - mmToPt(135), fontSize);
+            await drawTextAsImage(pdfDoc, page, `26198887`, mmToPt(155), height - mmToPt(144), fontSize);
+            await drawTextAsImage(pdfDoc, page, `Engineer`, mmToPt(155), height - mmToPt(139), fontSize);
+            
+            // Signature Block
+            await drawTextAsImage(pdfDoc, page, `王先生`, mmToPt(120), height - mmToPt(173), fontSize);
+            await drawTextAsImage(pdfDoc, page, signatureDate, mmToPt(120), height - mmToPt(181), fontSize);
+            await drawTextAsImage(pdfDoc, page, `REC Engineering Company Limited`, mmToPt(120), height - mmToPt(190), fontSize);
+            
+            drewSomething = true;
+          }
         }
 
-        // Page 39 (Index 38)
-        if (pages.length > 38) {
-          const page = pages[38];
-          const { height } = page.getSize();
-          
-          const mmToPt = (mm: number) => mm * 2.83465;
-          const fontSize = 7;
-          await drawTextAsImage(pdfDoc, page, `Senior Manager`, mmToPt(143), height - mmToPt(243), fontSize);
-          await drawTextAsImage(pdfDoc, page, `Mr. Alan Chan`, mmToPt(70), height - mmToPt(260), fontSize);
-          await drawTextAsImage(pdfDoc, page, quotationDate, mmToPt(145), height - mmToPt(260), fontSize);
+        if (docType === 'full' || docType === 'quotation') {
+          const targetPageIndex = docType === 'full' ? 38 : 0;
+          if (pages.length > targetPageIndex) {
+            const page = pages[targetPageIndex];
+            const { height } = page.getSize();
+            
+            // Quotation Form data
+            await drawTextAsImage(pdfDoc, page, `Senior Manager`, mmToPt(143), height - mmToPt(243), fontSize);
+            await drawTextAsImage(pdfDoc, page, `Mr. Alan Chan`, mmToPt(70), height - mmToPt(260), fontSize);
+            await drawTextAsImage(pdfDoc, page, quotationDate, mmToPt(145), height - mmToPt(260), fontSize);
+            
+            drewSomething = true;
+          }
         }
 
-        alert("This PDF lacked interactive fields, so we successfully drew your information directly onto Page 8 and Page 39 in black Times New Roman.");
+        if (drewSomething) {
+          alert("Successfully drew your information directly onto the PDF.");
+        } else {
+          alert("Could not find the target pages to draw on. The PDF is too short.");
+        }
       } else {
         alert(`Successfully filled ${filledCount} out of ${fields.length} interactive fields!`);
         form.flatten(); // Flatten form so it's not editable anymore
@@ -299,6 +308,24 @@ export default function App() {
           
           {/* Upload Section */}
           <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 w-full flex flex-col">
+            <div className="mb-4">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Document Type</label>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center space-x-2 text-sm text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors">
+                  <input type="radio" value="full" checked={docType === 'full'} onChange={() => setDocType('full')} className="text-emerald-600 focus:ring-emerald-500" />
+                  <span>Full Tender (40+ pages)</span>
+                </label>
+                <label className="flex items-center space-x-2 text-sm text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors">
+                  <input type="radio" value="site_visit" checked={docType === 'site_visit'} onChange={() => setDocType('site_visit')} className="text-emerald-600 focus:ring-emerald-500" />
+                  <span>Site Visit Form Only (1 page)</span>
+                </label>
+                <label className="flex items-center space-x-2 text-sm text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors">
+                  <input type="radio" value="quotation" checked={docType === 'quotation'} onChange={() => setDocType('quotation')} className="text-emerald-600 focus:ring-emerald-500" />
+                  <span>Quotation Form Only (1 page)</span>
+                </label>
+              </div>
+            </div>
+
             <div 
               {...getRootProps()} 
               className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors duration-200 flex-grow
