@@ -11,7 +11,15 @@ interface ExtractedDates {
   tenderClosingDate: string | null;
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiClient: GoogleGenAI | null = null;
+const getAiClient = () => {
+  if (!aiClient) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) throw new Error("GEMINI_API_KEY is missing. Please set it in your environment variables.");
+    aiClient = new GoogleGenAI({ apiKey: key });
+  }
+  return aiClient;
+};
 
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -57,6 +65,7 @@ export default function App() {
       const base64Data = await fileToBase64(selectedFile);
       const mimeType = selectedFile.type || 'application/octet-stream';
 
+      const ai = getAiClient();
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: [
@@ -103,13 +112,16 @@ export default function App() {
     }
   }, []);
 
+  const onDropRejected = useCallback((fileRejections: any[]) => {
+    const rejection = fileRejections[0];
+    if (rejection) {
+      setError(`File rejected: ${rejection.errors[0]?.message || 'Invalid file type'}. Please ensure it is a PDF or Word document.`);
+    }
+  }, []);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
-    },
+    onDropRejected,
     maxFiles: 1
   });
 
