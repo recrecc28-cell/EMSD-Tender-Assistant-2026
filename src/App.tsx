@@ -259,8 +259,8 @@ export default function App() {
           
           const mmToPt = (mm: number) => mm * 2.83465;
           const fontSize = 7;
-          await drawTextAsImage(pdfDoc, page, `SENIOR MANAGER`, mmToPt(143), height - mmToPt(243), fontSize);
-          await drawTextAsImage(pdfDoc, page, `MR ALAN CHAN`, mmToPt(70), height - mmToPt(260), fontSize);
+          await drawTextAsImage(pdfDoc, page, `Senior Manager`, mmToPt(143), height - mmToPt(243), fontSize);
+          await drawTextAsImage(pdfDoc, page, `Mr. Alan Chan`, mmToPt(70), height - mmToPt(260), fontSize);
           await drawTextAsImage(pdfDoc, page, quotationDate, mmToPt(145), height - mmToPt(260), fontSize);
         }
 
