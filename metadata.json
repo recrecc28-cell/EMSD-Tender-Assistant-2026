@@ -1,0 +1,6 @@
+{
+  "name": "EMSD Tender Assistant 2026",
+  "description": "Extracts dates from EMSD tender documents and automatically calculates required fields for the Site Visit Application and Form of Quotation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
